@@ -112,7 +112,7 @@ exit
 
 }
 
-run_porter_download()
+porter_install_fork()
 {
     # Define a function to call the porter binary
     porter() {
@@ -132,34 +132,61 @@ run_porter_download()
     porter plugins list
 }
 
-run_porter_download_cdn() { # #version $fix_version
+porter_cli_install_released_or_fork() { # #version $fix_version $plugin_version $plugin_fix_version
 
-    version=$1
-    fix_version=$2
-    # Hve to be existing released verstion to download scripts
-    export VERSION=$version
+    # Define a function to call the porter binary
+    porter() {
+        ~/.porter/porter "$@"
+    }
+
+    VERSION=$1
+    FIX_VERSION=$2
+
+    # Have to be existing released version to download scripts
     export PORTER_VERSION=$VERSION
     export PORTER_HOME=${PORTER_HOME:-~/.porter}
 
-    curl -L https://cdn.porter.sh/$VERSION/install-linux.sh -o porter-install-linux.sh
+    curl -L https://cdn.porter.sh/$PORTER_VERSION/install-linux.sh -o porter-install-linux.sh
     chmod +x porter-install-linux.sh
 
-
-    if [ -n "$fix_version" ]; then
+    if [ -n "$FIX_VERSION" ]; then
         # now updated to the version you want
-        export VERSION=$version$fix_version
-        export PORTER_VERSION=$VERSION
+        export PORTER_VERSION=$VERSION$FIX_VERSION
         export PORTER_MIRROR=https://github.com/kurtschenk/porter/releases/download
     fi
 
      ./porter-install-linux.sh
     
     # if there is a dash version then need to install exec mixin from fork
-    if [ -n "$fix_version" ]; then
-       ~/.porter/porter mixin install exec --version $VERSION --url $PORTER_MIRROR  
+    if [ -n "$FIX_VERSION" ]; then
+       porter mixin install exec --version $PORTER_VERSION --url $PORTER_MIRROR
+       porter mixins list
     fi  
 
 }
+
+porter_azure_plugin_install_released_or_fork()
+{
+    # Define a function to call the porter binary
+    porter() {
+        ~/.porter/porter "$@"
+    }
+
+    export PORTER_PLUGIN_REPOSITORY=${PORTER_PLUGIN_REPOSITORY:-https://github.com/kurtschenk/azure-plugins}
+
+    PLUGIN_VERSION=$1
+    PLUGIN_FIX_VERSION=$2
+
+    if [ -n "$PLUGIN_FIX_VERSION" ]; then
+       porter plugin install azure --version $PLUGIN_VERSION$PLUGIN_FIX_VERSION --url $PORTER_PLUGIN_REPOSITORY/releases/download
+       porter plugins list
+    else
+       porter plugin install azure --version $PLUGIN_VERSION
+       porter plugins list
+    fi  
+
+}
+
 
 # tag=v1.1.1-2
 # delete_tag $tag
@@ -168,10 +195,16 @@ run_porter_download_cdn() { # #version $fix_version
 # publish
 
 # run_porter_container
-# run_porter_download
+
 version="v1.1.1"
 fix_version="-2"
-run_porter_download_cdn $version $fix_version
+
+porter_cli_install_released_or_fork $version $fix_version
+
+plugin_version="v1.2.3"
+plugin_fix_version="-1"
+
+porter_azure_plugin_install_released_or_fork $plugin_version $plugin_fix_version
 
 
 
