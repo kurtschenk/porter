@@ -132,22 +132,22 @@ run_porter_download()
     porter plugins list
 }
 
-run_porter_download_cdn() {
+run_porter_download_cdn() { # #version $fix_version
 
-    dash_version=$1
-
+    version=$1
+    fix_version=$2
     # Hve to be existing released verstion to download scripts
-    export VERSION=v1.1.0
-    export PORTER_HOME=${PORTER_HOME:-~/.porter}
+    export VERSION=$version
     export PORTER_VERSION=$VERSION
+    export PORTER_HOME=${PORTER_HOME:-~/.porter}
 
     curl -L https://cdn.porter.sh/$VERSION/install-linux.sh -o porter-install-linux.sh
     chmod +x porter-install-linux.sh
 
 
-    if [ -n "$dash_version" ]; then
+    if [ -n "$fix_version" ]; then
         # now updated to the version you want
-        export VERSION=v1.1.1$dash_version
+        export VERSION=$version$fix_version
         export PORTER_VERSION=$VERSION
         export PORTER_MIRROR=https://github.com/kurtschenk/porter/releases/download
     fi
@@ -155,7 +155,7 @@ run_porter_download_cdn() {
      ./porter-install-linux.sh
     
     # if there is a dash version then need to install exec mixin from fork
-    if [ -n "$dash_version" ]; then
+    if [ -n "$fix_version" ]; then
        ~/.porter/porter mixin install exec --version $VERSION --url $PORTER_MIRROR  
     fi  
 
@@ -169,8 +169,9 @@ run_porter_download_cdn() {
 
 # run_porter_container
 # run_porter_download
-dash_version="-2"
-run_porter_download_cdn $dash_version
+version="v1.1.1"
+fix_version="-2"
+run_porter_download_cdn $version $fix_version
 
 
 
