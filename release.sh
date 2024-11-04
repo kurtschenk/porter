@@ -159,7 +159,7 @@ porter_cli_install_released_or_fork() { # #version $fix_version $plugin_version 
     
     # if there is a dash version then need to install exec mixin from fork
     if [ -n "$FIX_VERSION" ]; then
-       porter mixin install exec --version $PORTER_VERSION --url $PORTER_MIRROR
+       porter mixin install exec --version $PORTER_VERSION --url $PORTER_MIRROR --verbosity debug
        porter mixins list
     fi  
 
@@ -178,10 +178,10 @@ porter_azure_plugin_install_released_or_fork()
     PLUGIN_FIX_VERSION=$2
 
     if [ -n "$PLUGIN_FIX_VERSION" ]; then
-       porter plugin install azure --version $PLUGIN_VERSION$PLUGIN_FIX_VERSION --url $PORTER_PLUGIN_REPOSITORY/releases/download
+       porter plugin install azure --version $PLUGIN_VERSION$PLUGIN_FIX_VERSION --url $PORTER_PLUGIN_REPOSITORY/releases/download --verbosity debug
        porter plugins list
     else
-       porter plugin install azure --version $PLUGIN_VERSION
+       porter plugin install azure --version $PLUGIN_VERSION --verbosity debug
        porter plugins list
     fi  
 
