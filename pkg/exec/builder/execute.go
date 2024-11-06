@@ -68,6 +68,8 @@ type ExitError interface {
 // a single step is allowed to be defined in the Action (which is what happens when Porter
 // executes steps one at a time).
 func ExecuteSingleStepAction(ctx context.Context, cfg runtime.RuntimeConfig, action ExecutableAction) (string, error) {
+	ctx, span := tracing.StartSpan(ctx)
+	defer span.EndSpan()
 	steps := action.GetSteps()
 	if len(steps) != 1 {
 		return "", fmt.Errorf("expected a single step, but got %d", len(steps))
