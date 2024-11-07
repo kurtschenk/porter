@@ -5,7 +5,7 @@ go 1.22
 toolchain go1.23.1
 
 replace (
-	github.com/cnabio/cnab-go => ../cnab-go
+	github.com/cnabio/cnab-go => github.com/kurtschenk/cnab-go v0.25.6
 	// See https://github.com/hashicorp/go-plugin/pull/127 and
 	// https://github.com/hashicorp/go-plugin/pull/163
 	// Also includes branches we haven't PR'd yet: capture-yamux-logs, context-cancellation
