@@ -1,4 +1,5 @@
 # Create tags for release
+<<<<<<< HEAD
 delete_tag() {
   tag=$1
   git tag -d $1
@@ -6,6 +7,9 @@ delete_tag() {
 }
 
 set_tag() {
+=======
+tag() {
+>>>>>>> joel/dockerupgrade
   tag=$1
   git tag $1 -a -m ""
   git push $1
@@ -20,14 +24,22 @@ build() {
     # mage ConfigureAgent
 
     # Native build
+<<<<<<< HEAD
     mage -v build
+=======
+    mage build
+>>>>>>> joel/dockerupgrade
 
     # Publish native binaries
     # Not needed, they will be in ./bin folder
 
     # Cross-Compile
     # Leave out for now.
+<<<<<<< HEAD
     mage -v XBuildAll
+=======
+    mage XBuildAll
+>>>>>>> joel/dockerupgrade
 
     # Publish Release Binaries
     # Not needed, will be in ./bin folder
@@ -56,6 +68,7 @@ build() {
 
 publish() {
     
+<<<<<<< HEAD
     gh auth login
     export PORTER_RELEASE_REPOSITORY=github.com/kurtschenk/porter # github.com/KurtSchenk/porter
     mage -v PublishPorter
@@ -64,15 +77,31 @@ publish() {
     export PORTER_MIRROR=https://github.com/kurtschenk/porter/releases/download
     export PORTER_PACKAGES_REMOTE=https://github.com/KurtSchenk/packages.git
     mage -v PublishMixins
+=======
+    # gh auth login
+    # export PORTER_RELEASE_REPOSITORY=github.com/kurtschenk/porter # github.com/KurtSchenk/porter
+    #DONE # mage -v PublishPorter
+    
+    # Publish Mixins
+    # export PORTER_PACKAGES_REMOTE=https://github.com/KurtSchenk/packages.git
+    # DONE # mage -v PublishMixins
+>>>>>>> joel/dockerupgrade
     
     # Publish Docker Images
     ## Download Cross-Compiled Porter Binaries
     ## Setup Binaries
+<<<<<<< HEAD
     #  go run mage.go ConfigureAgent UseXBuildBinaries
     mage UseXBuildBinaries
 
     # Login to Container Registry
     # Not needed
+=======
+    ## go run mage.go ConfigureAgent UseXBuildBinaries
+    # DONE # mage UseXBuildBinaries
+
+    # Login to Container Registry
+>>>>>>> joel/dockerupgrade
     # docker login
     # TODO: Do this on shell that executes scripts
     # export GITHUB_TOKEN=ghp_i8K...# 
@@ -82,6 +111,7 @@ publish() {
 
 }
 
+<<<<<<< HEAD
 run_porter_container()
 {
 
@@ -205,6 +235,12 @@ plugin_version="v1.2.3"
 plugin_fix_version="-1"
 
 porter_azure_plugin_install_released_or_fork $plugin_version $plugin_fix_version
+=======
+# tag v1.1.4
+# build
+publish
+
+>>>>>>> joel/dockerupgrade
 
 
 

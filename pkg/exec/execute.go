@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"get.porter.sh/porter/pkg/exec/builder"
+	"get.porter.sh/porter/pkg/tracing"
 	"get.porter.sh/porter/pkg/yaml"
 )
 
@@ -13,6 +14,8 @@ type ExecuteOptions struct {
 }
 
 func (m *Mixin) loadAction(ctx context.Context, commandFile string) (*Action, error) {
+	_, span := tracing.StartSpan(ctx)
+	defer span.EndSpan()
 	var action Action
 	err := builder.LoadAction(ctx, m.Config, commandFile, func(contents []byte) (interface{}, error) {
 		err := yaml.Unmarshal(contents, &action)
@@ -22,6 +25,8 @@ func (m *Mixin) loadAction(ctx context.Context, commandFile string) (*Action, er
 }
 
 func (m *Mixin) Execute(ctx context.Context, opts ExecuteOptions) error {
+	ctx, span := tracing.StartSpan(ctx)
+	defer span.EndSpan()
 	action, err := m.loadAction(ctx, opts.File)
 	if err != nil {
 		return err

@@ -19,6 +19,10 @@ on:
         required: false
         default: false
         type: boolean
+      PORTER_RELEASE_REPOSITORY:
+        required: false
+        default: ghcr.io/KurtSchenk/porter
+        type: string 
 jobs:
   Validate-build:
     name: Native Compile
@@ -35,7 +39,7 @@ jobs:
       run: mage build
       shell: bash
     - name: Publish Native Binaries
-      uses: actions/upload-artifact@v4.0.0
+      uses: actions/upload-artifact@v4.4.0
       with:
         name: build-bin
         path: "${{ github.workspace }}/bin"
@@ -56,7 +60,7 @@ jobs:
       run: mage XBuildAll
       shell: bash
     - name: Publish Release Binaries
-      uses: actions/upload-artifact@v4.0.0
+      uses: actions/upload-artifact@v4.4.0
       with:
         name: xbuild-bin
         path: "${{ github.workspace }}/bin"
@@ -112,7 +116,7 @@ jobs:
       with:
         go-version: ${{ inputs.goVersion }}
     - name: Download Cross-Compiled Porter Binaries
-      uses: actions/download-artifact@v4.1.0
+      uses: actions/download-artifact@v4.1.8
       with:
         name: xbuild-bin
         path: bin
@@ -130,6 +134,8 @@ jobs:
     - Validate-integration_test
     - Validate-smoke_test
     runs-on: ubuntu-latest
+    env:
+      PORTER_RELEASE_REPOSITORY: ${{ inputs.PORTER_RELEASE_REPOSITORY }}
     permissions: write-all
     if: success() && ${{ inputs.shouldPublish == true }}
     steps:
@@ -141,7 +147,7 @@ jobs:
       with:
         go-version: ${{ inputs.goVersion }}
     - name: Download Cross-Compiled Porter Binaries
-      uses: actions/download-artifact@v4.1.0
+      uses: actions/download-artifact@v4.1.8
       with:
         name: xbuild-bin
         path: bin
@@ -160,7 +166,7 @@ jobs:
   publish-ghcr:
     env:
       DOCKER_REGISTRY: ${{inputs.registry}}
-      DOCKER_USERNAME: getporterbot
+      DOCKER_USERNAME: kurtschenk
       VERSION: ${{github.ref_name}}
     name: Publish Docker Images
     needs:
@@ -182,7 +188,7 @@ jobs:
       with:
         go-version: ${{ inputs.goVersion }}
     - name: Download Cross-Compiled Porter Binaries
-      uses: actions/download-artifact@v4.1.0
+      uses: actions/download-artifact@v4.1.8
       with:
         name: xbuild-bin
         path: bin
