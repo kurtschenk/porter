@@ -2,6 +2,7 @@ package drivers
 
 import (
 	"fmt"
+	"os"
 
 	"get.porter.sh/porter/pkg/portercontext"
 	"github.com/cnabio/cnab-go/driver"
@@ -17,6 +18,7 @@ import (
 // This replaces cnab-go's lookup function because cnab-go uses global process
 // values, such as $PATH, instead of our context.
 func LookupDriver(cxt *portercontext.Context, name string) (driver.Driver, error) {
+	fmt.Println("System PATH:", os.Getenv("PATH"))
 	switch name {
 	case "docker":
 		return &docker.Driver{}, nil

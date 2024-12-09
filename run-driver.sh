@@ -7,15 +7,16 @@ porter() {
     fi
 }
 
-chmod +x cnab-ksdebug
-chmod +x cnab-ksdocker
 cp ~/src/One/MCIGET-ISV-UnifiedDeployment/kurtsc/porter_driver/bash/cnab-ksdebug ~/.porter/drivers/
 cp ~/src/One/MCIGET-ISV-UnifiedDeployment/kurtsc/porter_driver/bash/cnab-ksdocker ~/.porter/drivers/
+chmod +x ~/.porter/drivers/cnab-ksdebug
+chmod +x ~/.porter/drivers/cnab-ksdocker
+
 PATH=$PATH:~/.porter/drivers/
 
 # Works
-porter param apply parameter-set.yaml
-porter install test1 -r getporter/hello-llama:v0.1.1 -d ksdocker -p hello-llama --verbosity debug --force
+# porter param apply parameter-set.yaml
+# porter install test1 -r getporter/hello-llama:v0.1.1 -d ksdocker -p hello-llama --verbosity debug --force
 
 # Works
 # porter install hello -r getporter/porter-hello:v0.1.1 -d ksdocker --verbosity debug --force
