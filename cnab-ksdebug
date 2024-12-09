@@ -1,0 +1,74 @@
+#!/bin/bash
+############
+# This is an example Duffle driver
+#
+# It implements `--handles` and `--help`, as well as handling the main
+# operation.
+############
+set -eo pipefail
+
+
+# Function to perform the driver operation (e.g., debug output)
+perform_operation() {
+    # Read the JSON input from stdin
+    input_json=$(cat -)
+    # echo "$input_json"
+
+    # Parse the input JSON using jq
+    action=$(echo "$input_json" | jq -r '.action')
+    installation_name=$(echo "$input_json" | jq -r '.installation_name')
+    revision=$(echo "$input_json" | jq -r '.revision')
+    image=$(echo "$input_json" | jq -r '.image.image')
+    parameters=$(echo "$input_json" | jq -c '.parameters')
+    environment=$(echo "$input_json" | jq -c '.environment')
+    files=$(echo "$input_json" | jq -c '.files')
+
+    # Output the operation details
+    echo "=== Debug Driver ==="
+    echo "Action: $action"
+    echo "Installation Name: $installation_name"
+    echo "Revision: $revision"
+    echo "Invocation Image: $image"
+
+    echo -e "\nEnvironment Variables:"
+    echo "$environment" | jq -r 'to_entries[] | "\(.key)=\(.value)"'
+
+    echo -e "\nParameters:"
+    echo "$parameters" | jq
+
+    echo -e "\nFiles to be Injected:"
+    for row in $(echo "$files" | jq -r 'to_entries[] | @base64'); do
+        _jq() {
+            echo "${row}" | base64 --decode | jq -r "${1}"
+        }
+        file_path=$(_jq '.key')
+        echo "File: $file_path"
+    done
+
+    echo -e "\n=== End of Debug Information ==="
+
+    # Exit successfully
+    exit 0
+}
+
+if [[ $1 == "--handles" ]]; then
+    echo docker,oci,qcow
+    exit 0;
+elif [[ $1 == "--help" ]]; then
+    echo "Put yer helptext here"
+    exit 1;
+fi
+
+#kurt@DESKTOP-ML7A32M:~/src/GitHub/KurtSchenk/porter$ echo '{"action": "test"}' | cat | jq .action
+# "test"
+# kurt@DESKTOP-ML7A32M:~/src/GitHub/KurtSchenk/porter$ echo '{"action": "test"}' | cat | jq -r .action
+# test
+# kurt@DESKTOP-ML7A32M:~/src/GitHub/KurtSchenk/porter$ echo '{"action": "test"}' | cat | jq -r ".action"
+# test
+
+# echo "All input to the driver"
+# cat - | jq .
+# echo -n "Plugin: The action is "
+# cat - | jq -r '.action' # jq .action
+
+perform_operation

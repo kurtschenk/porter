@@ -1,0 +1,7 @@
+schemaType: ParameterSet
+schemaVersion: 1.0.1
+name: hello-llama
+parameters:
+  - name: name
+    source:
+      value: Kurt Schenk

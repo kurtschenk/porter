@@ -1,0 +1,147 @@
+#!/bin/bash
+############
+# This is an example Duffle driver
+#
+# It implements `--handles` and `--help`, as well as handling the main
+# operation.
+############
+set -eo pipefail
+
+# Ensure jq is installed
+if ! command -v jq &> /dev/null; then
+    echo "jq is required but not installed. Please install jq to continue." >&2
+    exit 1
+fi
+
+if [[ $1 == "--handles" ]]; then
+    echo docker,oci,qcow
+    exit 0;
+elif [[ $1 == "--help" ]]; then
+    echo "Put yer helptext here"
+    exit 1;
+fi
+
+parse_input() {
+    # Read JSON input from stdin
+    input_json=$(cat)
+    # Parse the input JSON using jq
+    action=$(echo "$input_json" | jq -r '.action')
+    installation_name=$(echo "$input_json" | jq -r '.installation_name | gsub("[^a-zA-Z0-9-]"; "-")')
+    revision=$(echo "$input_json" | jq -r '.revision')
+    image=$(echo "$input_json" | jq -r '.image.image')
+    environment=$(echo "$input_json" | jq -c '.environment')
+    files=$(echo "$input_json" | jq -c '.files')
+}
+
+# Function to create environment variables string for docker command
+create_env_vars() {
+    local env_json=$1
+    local env_vars=""
+    # Set CNAB_ACTION environment variable
+    # env_vars+=" -e CNAB_ACTION=\"$action\""
+    for row in $(echo "$env_json" | jq -r 'to_entries[] | @base64'); do
+        _jq() {
+            echo "${row}" | base64 --decode | jq -r "${1}"
+        }
+        key=$(_jq '.key')
+        value=$(_jq '.value')
+        if [[ "$value" == "true" || "$value" == "false" ]]; then
+            env_vars+=" -e $key=$value"
+        else
+            env_vars+=" -e $key=\"$value\""
+        fi
+    done
+    echo "$env_vars"
+}
+
+# Function to create file mounts for docker command
+create_file_mounts() {
+    local files_json=$1
+    local mounts=""
+    temp_dir=$(mktemp -d)
+    for row in $(echo "$files_json" | jq -r 'to_entries[] | @base64'); do
+        _jq() {
+            echo "${row}" | base64 --decode | jq -r "${1}"
+        }
+        file_path=$(_jq '.key')
+        file_content=$(_jq '.value')
+        host_path="$temp_dir$file_path"
+        mkdir -p "$(dirname "$host_path")"
+        echo -e "$file_content" > "$host_path"
+        mounts+=" -v $host_path:$file_path"
+    done
+    echo "$mounts"
+}
+
+# Function to perform the specified action
+perform_action() {
+    case "$action" in
+        install)
+            run_invocation_image
+            ;;
+        upgrade)
+            run_invocation_image
+            ;;
+        uninstall)
+            run_invocation_image
+            ;;
+        *)
+            echo "Unknown action: $action" >&2
+            exit 1
+            ;;
+    esac
+}
+
+# Function to run the invocation image
+run_invocation_image() {
+    echo "Starting action '$action' for installation '$installation_name'"
+
+    # Create environment variables string
+    env_vars=$(create_env_vars "$environment")
+    echo "env_vars: $env_vars"
+
+    # Create file mounts
+    mounts=$(create_file_mounts "$files")
+    echo "mounts: $mounts"
+
+    # works
+    # TODO: Why is CNAB_ACTION set twice?
+    #  docker run --rm  -e CNAB_ACTION="install" -e CNAB_ACTION="install" -e CNAB_BUNDLE_NAME="hello-llama" -e CNAB_BUNDLE_VERSION="0.1.0" 
+    # -e CNAB_CLAIMS_VERSION="1.0.0-DRAFT+b5ed2f3" -e CNAB_INSTALLATION_NAME="/test1" -e CNAB_REVISION="01JCW31N4955EX06BQJZMV8BQ3" -e NAME="Kurt Schenk" 
+    # -e PORTER_DEBUG="true" -e PORTER_INSTALLATION_NAME="test1" -e PORTER_INSTALLATION_NAMESPACE="" -e PORTER_VERBOSITY="debug"  
+    # -v /tmp/tmp.0fuyWhJK8b/cnab/app/image-map.json:/cnab/app/image-map.json -v /tmp/tmp.0fuyWhJK8b/cnab/app/relocation-mapping.json:/cnab/app/relocation-mapping.json 
+    # -v /tmp/tmp.0fuyWhJK8b/cnab/bundle.json:/cnab/bundle.json -v /tmp/tmp.0fuyWhJK8b/cnab/claim.json:/cnab/claim.json --entrypoint "/cnab/app/run" 
+    # getporter/hello-llama@sha256:586da535b2a5dc112d2f6168275c1db76db4d4a748566d3f2e387f7d5282f83a -c "-f porter.yaml"
+
+    echo "Running invocation image: $image, action: $action"
+    # Run the invocation image using docker, passing the action as an argument
+    # TODOL actually -f alread in the cnab/app/run script
+    # echo "docker run --rm $env_vars $mounts --entrypoint \"/cnab/app/run\" $image -c \"-f porter.yaml\""
+    echo "docker run --rm $env_vars $mounts --entrypoint \"/cnab/app/run\" $image"
+    echo "before"
+    image=$(echo "$image" | tr '[:upper:]' '[:lower:]')
+    echo "image: $image"
+    # I don't see output from the invocation image
+    # docker run --rm $env_vars $mounts --entrypoint "/cnab/app/run" "$image" -c "-f porter.yaml"
+    # I don't see output from the invocation image
+    # docker run --rm $env_vars $mounts --entrypoint "/cnab/app/run" "$image" -c "-f porter.yaml" 2>&1 | tee /dev/tty
+    # I don't see output from the invocation image
+    # docker run --rm $env_vars $mounts --entrypoint "/cnab/app/run" "$image" -c "-f porter.yaml" 2>&1
+   
+    # Construct the docker run command
+    docker_cmd="docker run --rm $env_vars $mounts --entrypoint \"/cnab/app/run\" \"$image\""
+    # echo "Docker command: $docker_cmd"
+    # Run the docker command and capture output
+    eval $docker_cmd 2>&1
+
+ 
+    echo "after"
+    # Clean up temporary files
+    rm -rf "$temp_dir"
+
+    echo "Action '$action' completed successfully."
+}
+
+parse_input
+# Execute the main function
+perform_action
