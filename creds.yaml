@@ -1,0 +1,10 @@
+schemaType: CredentialSet
+schemaVersion: 1.0.1
+name: porter-test
+credentials:
+  - name: cred01
+    source:
+      value: "444"
+  - name: cred02
+    source:
+      value: "555"

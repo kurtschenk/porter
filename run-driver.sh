@@ -14,6 +14,10 @@ chmod +x ~/.porter/drivers/cnab-ksdocker
 
 PATH=$PATH:~/.porter/drivers/
 
+# For porter-test-bundle
+./bin/porter params apply params.yaml 
+./bin/porter creds apply creds.yaml 
+
 # Works
 # porter param apply parameter-set.yaml
 # porter install test1 -r getporter/hello-llama:v0.1.1 -d ksdocker -p hello-llama --verbosity debug --force

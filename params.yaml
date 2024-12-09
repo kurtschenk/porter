@@ -1,0 +1,13 @@
+schemaType: ParameterSet
+schemaVersion: 1.0.1
+name: porter-test
+parameters:
+  - name: param01
+    source:
+      value: "111"
+  - name: param02
+    source:
+      value: "222"
+  - name: param03
+    source:
+      value: "333"
